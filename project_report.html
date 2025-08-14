@@ -9,11 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Fatlum Dili" />
+<meta name="author" content="Your Name" />
 
-<meta name="date" content="2025-08-13" />
+<meta name="date" content="2025-08-14" />
 
-<title>Prediction of Exercise Manner Using Accelerometer Data</title>
+<title>Weight Lifting Exercise Prediction Project</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,10 +350,10 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Prediction of Exercise Manner Using
-Accelerometer Data</h1>
-<h4 class="author">Fatlum Dili</h4>
-<h4 class="date">2025-08-13</h4>
+<h1 class="title toc-ignore">Weight Lifting Exercise Prediction
+Project</h1>
+<h4 class="author">Your Name</h4>
+<h4 class="date">2025-08-14</h4>
 
 </div>
 
@@ -361,17 +361,18 @@ Accelerometer Data</h1>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>This project aims to predict how participants performed weight
-lifting exercises, classified by the variable <code>classe</code> in the
-training data set. Data were collected from accelerometers worn on
-different body parts. The goal is to build a predictive model with low
-out-of-sample error.</p>
+lifting exercises, classified by the variable <code>classe</code>. Data
+were collected from accelerometers worn on various body parts of
+participants performing different exercise movements. The objective is
+to build a machine learning model that accurately predicts the exercise
+manner with low out-of-sample error.</p>
 </div>
 <div id="data-loading-and-cleaning" class="section level1">
 <h1>Data Loading and Cleaning</h1>
 <pre class="r"><code>library(caret)
 library(randomForest)
 
-# Load data
+# Load training and testing data
 train_url &lt;- &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;
 test_url  &lt;- &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;
 
@@ -382,16 +383,16 @@ testing  &lt;- read.csv(test_url, na.strings = c(&quot;NA&quot;, &quot;&quot;, &
 nzv &lt;- nearZeroVar(training)
 training &lt;- training[, -nzv]
 
-# Remove columns with &gt;50% NAs
+# Remove columns with &gt;50% missing values
 na_cols &lt;- sapply(training, function(x) mean(is.na(x))) &gt; 0.5
 training &lt;- training[, !na_cols]
 
-# Remove irrelevant columns
+# Remove irrelevant columns that don&#39;t contain sensor data
 irrelevant_cols &lt;- c(&quot;X&quot;, &quot;user_name&quot;, &quot;raw_timestamp_part_1&quot;, &quot;raw_timestamp_part_2&quot;,
                      &quot;cvtd_timestamp&quot;, &quot;new_window&quot;, &quot;num_window&quot;)
 training &lt;- training[, !(names(training) %in% irrelevant_cols)]
 
-# Align test data columns
+# Prepare test data with matching columns
 testing &lt;- testing[, names(training)[names(training) != &quot;classe&quot;]]</code></pre>
 </div>
 
