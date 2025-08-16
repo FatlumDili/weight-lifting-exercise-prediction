@@ -1,0 +1,71 @@
+---
+title: "Weight Lifting Exercise Prediction Project"
+author: "Fatlum Dili"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Introduction
+
+This project predicts how participants performed weight lifting exercises using accelerometer data. The target variable is `classe`. Data were collected from devices on the belt, forearm, arm, and dumbbell of 6 participants performing 5 types of lifts, correctly or incorrectly.
+
+# Data Loading and Cleaning
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(caret)
+library(randomForest)
+library(dplyr)
+library(ggplot2)
+
+# Load data
+train_url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+test_url  <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+training <- read.csv(train_url, na.strings = c("NA", "", "#DIV/0!"))
+testing  <- read.csv(test_url, na.strings = c("NA", "", "#DIV/0!"))
+
+# Remove near-zero variance predictors
+nzv <- nearZeroVar(training)
+training <- training[, -nzv]
+
+# Remove columns with >50% missing
+na_cols <- sapply(training, function(x) mean(is.na(x))) > 0.5
+training <- training[, !na_cols]
+
+# Remove irrelevant columns
+irrelevant_cols <- c("X", "user_name", "raw_timestamp_part_1",
+                     "raw_timestamp_part_2", "cvtd_timestamp",
+                     "new_window", "num_window")
+training <- training[, !(names(training) %in% irrelevant_cols)]
+
+# Prepare test set
+testing <- testing[, names(training)[names(training) != "classe"]]
+
+# Convert characters to factors
+training <- training %>% mutate(across(where(is.character), as.factor))
+testing <- testing %>% mutate(across(where(is.character), as.factor))
+
+# Distribution of classes
+ggplot(training, aes(x=classe)) +
+  geom_bar(fill="steelblue") +
+  theme_minimal() +
+  labs(title="Distribution of Exercise Classes")
+
+set.seed(123)
+ctrl <- trainControl(method="repeatedcv", number=5, repeats=3)
+rf_cv <- train(classe ~ ., data=training, method="rf", trControl=ctrl)
+rf_cv
+
+# Train on full training set
+rf_model <- randomForest(classe ~ ., data=training)
+
+# Variable importance
+varImpPlot(rf_model)
+
+final_pred <- predict(rf_model, testing)
+submission <- data.frame(Id = 1:nrow(testing), Predicted = final_pred)
+
+# Show first few predictions
+head(submission)
+
+# Save CSV for course submission
+write.csv(submission, "predictions.csv", row.names=FALSE)
